@@ -1,7 +1,5 @@
 # ACFL
 
-This repo provides a demo for the our paper "".
-
 The codes for the work "ACFL: Communication-Efficient adversarial contrastive federated learning for medical image segmentation". Our paper has been accepted by Knowledge-Based Systems. We updated the Reproducibility. I hope this will help you to reproduce the results. 
 
 
