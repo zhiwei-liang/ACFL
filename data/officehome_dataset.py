@@ -56,12 +56,12 @@ class OfficeHome_SingleDomain():
             elif self.split == 'val':
                 self.imgs, self.labels = val_img, val_label
                 
-        self.dataset = MetaDataset(self.imgs, self.labels, self.domain_label, self.transform) # get数据集
+        self.dataset = MetaDataset(self.imgs, self.labels, self.domain_label, self.transform) # get dataset
     
     @staticmethod
     def split_list(l, ratio):
         assert ratio > 0 and ratio < 1
-        random.shuffle(l) # 打乱list
+        random.shuffle(l) # Shuffle the list
         train_size = int(len(l)*ratio)
         train_l = l[:train_size]
         val_l = l[train_size:]
@@ -91,9 +91,7 @@ class OfficeHome_FedDG():
     def __init__(self, test_domain='p', batch_size=16, seed=0):
         self.batch_size = batch_size
         self.domain_list = list(officehome_name_dict.keys())
-        # self.test_domain = test_domain
         self.train_domain_list = self.domain_list.copy()
-        # self.train_domain_list.remove(self.test_domain)  
         self.seed = seed
         
         self.site_dataset_dict = {}
@@ -102,8 +100,6 @@ class OfficeHome_FedDG():
             self.site_dataloader_dict[domain_name], self.site_dataset_dict[domain_name] = OfficeHome_FedDG.SingleSite(domain_name, self.batch_size, self.seed)
             
         
-        # self.test_dataset = self.site_dataset_dict[self.test_domain]['test']
-        # self.test_dataloader = self.site_dataloader_dict[self.test_domain]['test']
         
           
     @staticmethod

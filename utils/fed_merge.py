@@ -1,23 +1,23 @@
 def Dict_weight(dict_in, weight_in):
-    # 遍历dict_in中所有参数进行加权weight_in
+    # Traverse all the parameters in dict_in for weighting weight_in
     for k,v in dict_in.items():
         dict_in[k] = weight_in*v
     return dict_in
     
 def Dict_Add(dict1, dict2):
-    # 两个权重对应健，值相加
+    # Two weights correspond to keys, and the values are added together
     for k,v in dict1.items():
         dict1[k] = v + dict2[k]
     return dict1
 
 def Dict_Minus(dict1, dict2):
-    # 两个权重对应健，值相减
+    # Two weights correspond to keys, and the values are subtracted
     for k,v in dict1.items():
         dict1[k] = v - dict2[k]
     return dict1
 
 def Cal_Weight_Dict(dataset_dict, site_list=None):
-    # 根据每个客户端数据集中测试集的大小计算权重
+    # Calculate the weights based on the size of the test set in each client dataset
     if site_list is None:
         site_list = list(dataset_dict.keys())
     weight_dict = {}
@@ -30,13 +30,13 @@ def Cal_Weight_Dict(dataset_dict, site_list=None):
     return weight_dict
 
 def FedAvg(model_dict, weight_dict, global_model=None):
-    '''联邦平均算法'''
+    '''FedAvg'''
     new_model_dict = None
     for model_name in weight_dict.keys():
         model = model_dict[model_name]
         model_state_dict = model.state_dict()
         if new_model_dict is None:
-            # 全局模型为空时，直接赋值
+            # When the global model is empty, assign values directly
             new_model_dict = Dict_weight(model_state_dict, weight_dict[model_name])
         else:
             new_model_dict = Dict_Add(new_model_dict, Dict_weight(model_state_dict, weight_dict[model_name]))
@@ -48,7 +48,7 @@ def FedAvg(model_dict, weight_dict, global_model=None):
         return new_model_dict
 
 def FedUpdate(model_dict, global_model):
-    '''使用全局模型初始化本地模型'''
+    '''Initialize the local model using the global model'''
     global_model_parameters = global_model.state_dict()
     for site_name in model_dict.keys():
         model_dict[site_name].load_state_dict(global_model_parameters)

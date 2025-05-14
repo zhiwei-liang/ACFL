@@ -71,18 +71,13 @@ class PACS_FedDG():
     def __init__(self, test_domain='p', batch_size=16):
         self.batch_size = batch_size
         self.domain_list = list(pacs_name_dict.keys())
-        # self.test_domain = test_domain
         self.train_domain_list = self.domain_list.copy()
-        # self.train_domain_list.remove(self.test_domain)  
-        
+    
         self.site_dataset_dict = {}
         self.site_dataloader_dict = {}
         for domain_name in self.domain_list:
             self.site_dataloader_dict[domain_name], self.site_dataset_dict[domain_name] = PACS_FedDG.SingleSite(domain_name, self.batch_size)
             
-        
-        # self.test_dataset = self.site_dataset_dict[self.test_domain]['test']
-        # self.test_dataloader = self.site_dataloader_dict[self.test_domain]['test']
         
           
     @staticmethod

@@ -69,7 +69,7 @@ def main():
         for domain_name in dataobj.train_domain_list:
             results_dict = site_evaluation(i, domain_name, args, global_model, dataloader_dict[domain_name]['val'], log_file, log_ten, metric)
             fed_val+= results_dict['acc']*weight_dict[domain_name]
-        # val 结果
+        # val result
         if fed_val >= best_val:
             best_val = fed_val
             SaveCheckPoint(args, global_model, args.comm, os.path.join(log_dir, 'checkpoints'), note='best_val_model')

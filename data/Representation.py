@@ -9,7 +9,6 @@ class Representation(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # x = torch.from_numpy(self.data[idx])  # 将Numpy数组转换为PyTorch张量
         x = self.data[idx]
-        y = self.labels[idx]  # 获取对应的y标签
+        y = self.labels[idx]  # Obtain the corresponding y tag
         return x, y

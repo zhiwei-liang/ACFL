@@ -137,18 +137,11 @@ class SupConLoss(nn.Module):
                   if features.is_cuda
                   else torch.device('cpu'))
 
-        # if len(features.shape) < 3:
-        #     raise ValueError('`features` needs to be [bsz, n_views, ...],'
-        #                      'at least 3 dimensions are required')
-        #     # 就应该是两个维度，没有n_views，因此需要修改此处代码。
-        # if len(features.shape) > 3:
-        #     features = features.view(features.shape[0], features.shape[1], -1)
+        
         if len(features.shape) > 3:
             raise ValueError('`features` needs to be [bsz, features, ...],'
                              '2 dimensions are only required')
-            # 就应该是两个维度，没有n_views，因此需要修改此处代码。
-        # if len(features.shape) > 3:
-        #     features = features.view(features.shape[0], features.shape[1], -1)
+        
 
         batch_size = features.shape[0]
         if labels is not None and mask is not None:
@@ -156,32 +149,23 @@ class SupConLoss(nn.Module):
         elif labels is None and mask is None:
             mask = torch.eye(batch_size, dtype=torch.float32).to(device)
         elif labels is not None:
-            # labels非none
+            # labels are not none
             labels = labels.contiguous().view(-1, 1) # label二维矩阵batch_size*1
             if labels.shape[0] != batch_size:
                 raise ValueError('Num of labels does not match num of features')
-            # mask是一个batch_size*batch_size的矩阵，每一行代表batch中一个元素的类别情况，其中同类别的其他元素的对应位置为1.0，其余为0
+            # mask is a matrix of batch_size*batch_size. Each row represents the category situation of one element in the batch, where the corresponding position of other elements of the same category is 1.0, and the rest are 0
             mask = torch.eq(labels, labels.T).float().to(device) 
         else:
             mask = mask.float().to(device)
 
-        # contrast_count = features.shape[1]
-        # contrast_feature = torch.cat(torch.unbind(features, dim=1), dim=0)
-        # if self.contrast_mode == 'one':
-        #     anchor_feature = features[:, 0]
-        #     anchor_count = 1
-        # elif self.contrast_mode == 'all':
-        #     anchor_feature = contrast_feature
-        #     anchor_count = contrast_count
-        # else:
-        #     raise ValueError('Unknown mode: {}'.format(self.contrast_mode))
+        
         contrast_feature = features
         contrast_count = 1
         if self.contrast_mode == 'one':
             anchor_feature = features[:, 0]
             anchor_count = 1
         elif self.contrast_mode == 'all':
-            # 修改了此处，因为features本来就是两个维度，没有n_views
+            # features are originally two dimensions and there are no n_views
             anchor_feature = features
             anchor_count = 1
         else:
@@ -191,7 +175,7 @@ class SupConLoss(nn.Module):
         anchor_dot_contrast = torch.div(
             torch.matmul(anchor_feature, contrast_feature.T),
             self.temperature)
-        # for numerical stability，提高数值稳定性
+        # for numerical stability, improve numerical stability
         logits_max, _ = torch.max(anchor_dot_contrast, dim=1, keepdim=True)
         logits = anchor_dot_contrast - logits_max.detach()
 
@@ -226,16 +210,17 @@ class SupConLoss(nn.Module):
     
 
 def con_loss(client_idx, representations, pro_r, batch_size, temperature=0.5):
-    # 通过余弦相似度计算当前batch与其他原型特征之间的contra loss，目的是减少当前batch与其他客户端原型的距离
-    # 构建了全0的target向量，目的是让当前batch与其他客户端原型的距离尽可能近
+    # The contra loss between the current batch and the features of other prototypes is calculated through cosine similarity, 
+    # with the aim of reducing the distance between the current batch and other client prototypes
+    # A target vector of all zeros was constructed with the aim of making the distance between the current batch and other client prototypes as close as possible
     cos = torch.nn.CosineSimilarity(dim=-1)
     criterion = nn.CrossEntropyLoss()
     criterion.cuda()
     
 
-    # 计算每个 representation 与三个 pro_r 之间的余弦相似度
+    # Calculate the cosine similarity between each representation and the three PRO_Rs
     cosine_similarities = cos(representations.unsqueeze(1), pro_r[client_idx].unsqueeze(0))
-    # 找到每个 representation 与三个 pro_r 的最大余弦相似度
+    # Find the maximum cosine similarity of each representation to the three PRO_Rs
     nega, _ = torch.max(cosine_similarities, dim=1)
     
     # nega = cos(representations, pro_r[client_idx])
@@ -243,21 +228,16 @@ def con_loss(client_idx, representations, pro_r, batch_size, temperature=0.5):
     for label in pro_r:
         if label != client_idx:
             # min_pro_r_loss = 10000000
-            # 计算每个 representation 与三个 pro_r 之间的余弦相似度
+            # Calculate the cosine similarity between each representation and the three PRO_Rs
             cosine_simi = cos(representations.unsqueeze(1), pro_r[label].unsqueeze(0))
-            # 找到每个 representation 与三个 pro_r 的最大余弦相似度
+            # Find the maximum cosine similarity of each representation to the three PRO_Rs
             posi, _ = torch.max(cosine_simi, dim=1)
-            # for multi_pro_r in pro_r[label]:
-            #     posi = cos(representations, multi_pro_r)
             temp = posi.reshape(-1, 1)
             temp = torch.cat((temp, nega.reshape(-1, 1)), dim=1)
             temp /= temperature
             temp = temp.cuda()
             targets = torch.zeros(batch_size).cuda().long()
             lossCON += criterion(temp, targets)
-            #     con = criterion(temp, targets)
-            #     if con < min_pro_r_loss:
-            #         min_pro_r_loss = con
-            # lossCON += min_pro_r_loss
+        
             
     return lossCON * 1.0 / (len(pro_r) - 1)

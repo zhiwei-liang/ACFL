@@ -44,7 +44,7 @@ def site_train(comm_rounds, site_name, args, model, optimizer, scheduler, datalo
         tbar.set_description(f'{site_name}_train')
         epoch_site_train(comm_rounds*args.local_epochs + local_epoch, site_name, model, optimizer, scheduler, dataloader, log_ten, metric, pro_r, client_name_idx, discriminator)
 
-    # new:训练完成后，返回特征集合
+    # After the training is completed, return the feature set
     representations = []
     with torch.no_grad():
         for i, data_list in enumerate(dataloader):
@@ -146,7 +146,7 @@ def SaveCheckPoint(args, model, epochs, path, optimizer=None, schedule=None, not
     torch.save(check_dict, os.path.join(path, note+'.pt'))
     
 
-# new:更新全局鉴别器
+# Update the global discriminator
 from utils.losses import SupConLoss
 def update_global_discriminator(args, discriminator, r_dataloader):
     criterion = SupConLoss(temperature=args.temp)
@@ -157,28 +157,25 @@ def update_global_discriminator(args, discriminator, r_dataloader):
 
     for epoch in range(args.rk_iters):
         for batch in r_dataloader:
-            inputs, labels = batch  # 获取数据和标签
+            inputs, labels = batch
             bsz = labels.shape[0]
             inputs, labels = inputs.cuda(), labels.cuda()
             
-            # inputs = inputs.float()
             y_preds = discriminator(inputs) # y_preds torch.Size([64, 128])
             
-            # 有监督对比学习
-            # 假设 features 是你的特征
+            # Supervised contrastive learning
             loss = criterion(y_preds, labels=labels, test=None)
 
             discriminator_optimizer.zero_grad()
             loss.backward()
             discriminator_optimizer.step()
         
-        # discriminator_scheduler.step()
         if (epoch + 1) % args.print_freq == 0:
             print('Global discriminator train: [{0}]\t'
                 'loss: {loss:.3f}'.format(
                 epoch + 1, loss=loss.item()))
                 
-    # 返回全局特征原型
+    # Return to the global feature prototype
     pro_representations = _get_pro_representations(r_dataloader, discriminator)
 
     return pro_representations
@@ -189,17 +186,14 @@ def _get_pro_representations(r_dataloader, discriminator):
     model.eval()
 
     # get representations
-    # 编写：对于不同的类别，通过平均的方法获取不同类别的原型
+    # For different categories, the prototypes of different categories are obtained through the averaging method.
     pro_representations = {}
     representations = {}
     with torch.no_grad():
         for batch_idx, (x, labels) in enumerate(r_dataloader):
             model.zero_grad()
             x = x.cuda()
-            # x = x[:, :1024] # 前一半作为 输入的 特征
-            # x = x.float()
             r = model(x, "get_representations")
-            # todo：加入分开字典
             r = r.cpu().numpy()
             labels = labels.cpu().numpy()
             for i in range(len(labels)):
@@ -213,7 +207,7 @@ def _get_pro_representations(r_dataloader, discriminator):
     for label in representations:
         kmeans = KMeans(n_clusters=4, n_init='auto')
         kmeans.fit(representations[label])
-        # 获取聚类中心
+        # Obtain the clustering centers
         cluster_centers = kmeans.cluster_centers_
         pro_representations[label] = torch.from_numpy(cluster_centers).cuda()
     return pro_representations

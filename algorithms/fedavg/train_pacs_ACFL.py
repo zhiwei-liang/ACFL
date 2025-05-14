@@ -61,7 +61,7 @@ def _fit_GMM(representation):
 
 def main():
     '''log part'''
-    # 设置log文件夹与tensorboard
+    # Set up the log folder and tensorboard
     file_name = 'fedavg_'+os.path.split(__file__)[1].replace('.py', '')
     args = get_argparse()
     log_dir, tensorboard_dir = Gen_Log_Dir(args, file_name=file_name)
@@ -83,45 +83,36 @@ def main():
     metric = Classification()
     global_model, model_dict, optimizer_dict, scheduler_dict = GetFedModel(args, args.num_classes)
 
-    # new: 全局鉴别器
+    # new gobal discriminator
     input_dim = 2048
     output_dim = 128
     hidden_dim = [512, 256, 128]
     discriminator = MultiLayerMLPDiscriminator(input_dim, output_dim, hidden_dim)
-    # discriminator_optimizer = optim.SGD(discriminator.parameters(),
-    #                     lr=args.dis_learning_rate,
-    #                     momentum=args.dis_momentum,
-    #                     weight_decay=args.dis_weight_decay)
-    # discriminator_scheduler = optim.lr_scheduler.StepLR(discriminator_optimizer, step_size=int(args.comm*0.8), gamma=0.1)
-    pro_r = None  # 全局特征原型
+    
+    pro_r = None  # Global feature prototype
 
     weight_dict = Cal_Weight_Dict(dataset_dict, site_list=dataobj.train_domain_list)
-    # FedUpdate(model_dict, global_model) # 使用全局模型初始化本地模型
     best_val = 0.
 
     client_name_idx = {client_name: idx for idx, client_name in enumerate(dataobj.train_domain_list)}
 
     for i in range(args.comm+1):
-
-        # FedUpdate(model_dict, global_model) # 使用全局模型初始化本地模型
-        # new:初始化客户端的本地数据集
-        r_locals = []  # 本地虚拟特征集
-        l_locals = [] # 本地虚拟特征集标签
+        # Initialize the local dataset of the client
+        r_locals = []  # Local virtual feature set
+        l_locals = [] # Local virtual feature set label
 
         for domain_name in dataobj.train_domain_list:
             r = site_train(i, domain_name, args, model_dict[domain_name], optimizer_dict[domain_name], 
                        scheduler_dict[domain_name],dataloader_dict[domain_name]['train'], log_ten, metric, pro_r, client_name_idx, discriminator)
-            # 本地训练，训练后即进行验证
+            # Local training is conducted, and verification is carried out immediately after training
             site_evaluation(i, domain_name, args, model_dict[domain_name], dataloader_dict[domain_name]['val'], log_file, log_ten, metric, note='val')
 
-            # new
             re = _fit_GMM(r)
             r_locals.append(re)
             y = [client_name_idx[domain_name] for i in range(len(re))]
             l_locals.append(y)
 
-        # FedAvg(model_dict, weight_dict, global_model)
-        ## new 更新全局鉴别器和全局特征原型
+        # Update the global discriminator and the global feature prototype
         r_locals = np.concatenate(r_locals, axis=0)
         l_locals = np.concatenate(l_locals, axis=0)
         r_dataset = Representation(r_locals, l_locals)
@@ -134,7 +125,7 @@ def main():
         for domain_name in dataobj.train_domain_list:
             results_dict = site_evaluation(i, domain_name, args, model_dict[domain_name], dataloader_dict[domain_name]['val'], log_file, log_ten, metric, note='test')
             fed_val+= results_dict['acc']*weight_dict[domain_name]
-        # val 结果
+        # val result
         if fed_val >= best_val:
             best_val = fed_val
             SaveCheckPoint(args, global_model, args.comm, os.path.join(log_dir, 'checkpoints'), note='best_val_model')
@@ -142,7 +133,6 @@ def main():
                 SaveCheckPoint(args, model_dict[domain_name], args.comm, os.path.join(log_dir, 'checkpoints'), note=f'best_val_{domain_name}_model')
                 
             log_file.info(f'Model saved! Best Val Acc: {best_val*100:.2f}%')
-        # site_evaluation(i, args.test_domain, args, global_model, dataloader_dict[args.test_domain]['test'], log_file, log_ten, metric, note='test_domain')
         
     SaveCheckPoint(args, global_model, args.comm, os.path.join(log_dir, 'checkpoints'), note='last_model')
     for domain_name in dataobj.train_domain_list: 

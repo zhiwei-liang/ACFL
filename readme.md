@@ -20,9 +20,9 @@ Please download the datasets from the official links:
 
 
 ## Train/Test
-When you want to train, you run the .sh file.
+When you want to train, you run the .sh file. The corresponding background running script has been configured in the.sh file. You can modify the --dataset parameter to select the corresponding dataset.
 
-- Train
+- Train/Test
 ```
 sh run.sh
 ```
@@ -30,7 +30,7 @@ sh run.sh
 
 ## Acknowledgement
 
-Part of our code is borrowed from the following repositories.
+This project has benefited from the following resources, and I would like to express my gratitude:
 
 - FACT [https://github.com/MediaBrain-SJTU/FACT]
 - DomainBed [https://github.com/facebookresearch/DomainBed]
@@ -39,8 +39,7 @@ Part of our code is borrowed from the following repositories.
 
 
 
-To cite, please use:
-
+## Citation
 
 ```latex
 @article{liang2024acfl,

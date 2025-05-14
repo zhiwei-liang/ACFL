@@ -400,7 +400,6 @@ class MultiLayerMLPDiscriminator(nn.Module):
         layers.append(nn.Linear(in_dim, output_dim))
         layers.append(nn.BatchNorm1d(output_dim))
         self.fc_layers = nn.Sequential(*layers)
-        # self.fc_class = nn.Linear(output_dim, num_classes)
 
     def forward(self, x, task=''):
         x = x.to(torch.float32)
@@ -408,7 +407,6 @@ class MultiLayerMLPDiscriminator(nn.Module):
         if task == 'get_representations':
              return features
         return self.normalize(features)
-        # return self.fc_class(features)
     
     def normalize(self, features):
         return F.normalize(features, p=2, dim=1)
