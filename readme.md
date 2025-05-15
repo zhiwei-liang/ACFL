@@ -74,12 +74,16 @@ tensorboard==2.11.0
 
 ### Command Line Interface
 
+You can refer to the run command in the run.sh file for startup.
+
 ```bash
 # Start training/testing
 sh run.sh
 ```
 
 ### Web Interface
+
+Or use this simple app to start and log for visualization.
 
 ```bash
 # Start the web server
@@ -145,11 +149,7 @@ This project has benefited from the following excellent resources:
 }
 ```
 
-## 📫 Contact
 
-For any questions or issues, please feel free to:
-- Create an issue in this repository
-- Send an email to [your-email@example.com]
 
 ## 📄 License
 
