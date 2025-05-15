@@ -97,6 +97,7 @@ Then open your browser and visit: `http://localhost:5000`
   - Dataset selection
   - Model parameter adjustment
   - Training progress monitoring
+  - real time gpu/cpu/memory monitor 
 - 📊 **TensorBoard Integration**
   - Real-time metrics visualization
   - Log management
