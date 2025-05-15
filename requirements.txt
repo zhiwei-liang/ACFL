@@ -1,0 +1,4 @@
+flask==2.0.1
+werkzeug==2.0.1
+markupsafe==2.0.1
+tensorboard==2.11.0 

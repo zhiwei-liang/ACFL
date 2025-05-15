@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Federated Learning Platform{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --sidebar-width: 240px;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            padding-top: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            width: var(--sidebar-width);
+            padding: 48px 0 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(180deg, #ffffff 0%, var(--secondary-color) 100%);
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 6rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            transition: all var(--transition-speed);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            border-radius: 0 25px 25px 0;
+            margin: 0.2rem 0;
+            transition: all var(--transition-speed);
+            position: relative;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(74, 144, 226, 0.15);
+            font-weight: 500;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform var(--transition-speed);
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .toggle-sidebar {
+                display: block !important;
+            }
+
+            .sidebar-logo {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Toggle button for mobile */
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all var(--transition-speed);
+        }
+
+        .toggle-sidebar:hover {
+            transform: scale(1.1);
+        }
+
+        /* Form responsiveness */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .row {
+            margin: 0;
+        }
+
+        .col-md-6 {
+            padding: 0.5rem;
+        }
+
+        /* Make form elements more touch-friendly on mobile */
+        @media (max-width: 576px) {
+            .form-control, .form-select, .btn {
+                padding: 0.75rem;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+
+            .col-md-6 {
+                padding: 0.25rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Maintain other existing styles */
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e1e8ed;
+            padding: 0.75rem;
+            transition: all var(--transition-speed);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        /* Keep existing loading and scrollbar styles */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        /* 添加 logo 相关样式 */
+        .sidebar-logo {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: inherit;
+            z-index: 1;
+            width: var(--sidebar-width);
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            border-radius: 12px;
+            margin-right: 1rem;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 6px rgba(74, 144, 226, 0.2);
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-text span {
+            display: block;
+            font-size: 0.875rem;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .sidebar-logo:hover .logo-icon {
+            transform: rotate(360deg);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Mobile sidebar toggle button -->
+    <button class="toggle-sidebar" aria-label="Toggle Sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <!-- Logo Section -->
+                <div class="sidebar-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <a href="{{ url_for('index') }}" class="logo-text">
+                        Federated Learning
+                        <span>Collaborative AI Platform</span>
+                    </a>
+                </div>
+                
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_page == 'train' %}active{% endif %}" href="{{ url_for('index') }}">
+                                <i class="fas fa-cogs"></i>
+                                Training Configuration
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_page == 'tensorboard' %}active{% endif %}" href="{{ url_for('tensorboard') }}">
+                                <i class="fas fa-chart-line"></i>
+                                Tensorboard Visualization
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show loading overlay when submitting forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            const loading = document.querySelector('.loading');
+            const sidebar = document.querySelector('.sidebar');
+            const toggleButton = document.querySelector('.toggle-sidebar');
+
+            // Form submission handling
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    loading.classList.add('active');
+                });
+            });
+
+            // Sidebar toggle functionality
+            toggleButton.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    const isClickInsideSidebar = sidebar.contains(event.target);
+                    const isClickOnToggleButton = toggleButton.contains(event.target);
+                    
+                    if (!isClickInsideSidebar && !isClickOnToggleButton && sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

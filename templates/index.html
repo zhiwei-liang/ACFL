@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Training Configuration - Federated Learning Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">Training Configuration</h1>
+    <form method="POST" class="needs-validation" novalidate>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Algorithm</label>
+                <select name="algorithm" class="form-select" required>
+                    <option value="fedavg">FedAvg</option>
+                    <option value="fedprox">FedProx</option>
+                    <option value="scaffold">Scaffold</option>
+                    <option value="RSC">RSC</option>
+                    <option value="ACFL">ACFL</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Dataset</label>
+                <select name="dataset" class="form-select" required>
+                    <option value="pacs">PACS</option>
+                    <option value="officehome">Office-Home</option>
+                    <option value="terrainc">TerraInc</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Number of Classes</label>
+                <select name="num_classes" class="form-select" required>
+                    <option value="7">7 (PACS)</option>
+                    <option value="65">65 (Office-Home)</option>
+                    <option value="10">10 (TerraInc)</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Learning Rate</label>
+                <input type="number" name="learning_rate" class="form-control" value="0.001" step="0.001" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Batch Size</label>
+                <input type="number" name="batch_size" class="form-control" value="32" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Communication Rounds</label>
+                <input type="number" name="comm" class="form-control" value="200" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Model</label>
+                <select name="model" class="form-select" required>
+                    <option value="resnet18">ResNet18</option>
+                    <option value="resnet50">ResNet50</option>
+                    <option value="resnet18_rsc">ResNet18_RSC</option>
+                    <option value="resnet50_rsc">ResNet50_RSC</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Note</label>
+                <input type="text" name="note" class="form-control" value="debug">
+            </div>
+
+            <div class="col-12 text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">Start Training</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %} 
