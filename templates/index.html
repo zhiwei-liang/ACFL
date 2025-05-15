@@ -71,6 +71,26 @@
             </div>
         </div>
     </form>
+
+    <!-- 系统监控部分 -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col">
+                    <span class="badge bg-info">CPU: <span id="cpuPercent">-</span>%</span>
+                </div>
+                <div class="col">
+                    <span class="badge bg-warning">内存: <span id="memoryPercent">-</span>%</span>
+                </div>
+                <div class="col">
+                    <span class="badge bg-success">磁盘: <span id="diskPercent">-</span>%</span>
+                </div>
+                <div class="col" id="gpuContainer">
+                    <!-- GPU信息将在这里动态添加 -->
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -90,5 +110,33 @@
             }, false)
         })
     })()
+
+    // 更新系统监控信息
+    function updateSystemMetrics() {
+        fetch('/api/system-metrics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cpuPercent').textContent = data.cpu.percent.toFixed(1);
+                document.getElementById('memoryPercent').textContent = data.memory.percent.toFixed(1);
+                document.getElementById('diskPercent').textContent = data.disk.percent.toFixed(1);
+                
+                // 更新GPU信息
+                const gpuContainer = document.getElementById('gpuContainer');
+                if (data.gpu.length > 0) {
+                    gpuContainer.innerHTML = data.gpu.map(gpu => 
+                        `<span class="badge bg-danger">GPU ${gpu.id}: ${gpu.load.toFixed(1)}%</span>`
+                    ).join(' ');
+                } else {
+                    gpuContainer.innerHTML = '<span class="badge bg-secondary">无GPU</span>';
+                }
+            })
+            .catch(error => console.error('Error fetching metrics:', error));
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSystemMetrics(); // 立即获取一次数据
+        setInterval(updateSystemMetrics, 2000); // 每2秒更新一次
+    });
 </script>
 {% endblock %} 

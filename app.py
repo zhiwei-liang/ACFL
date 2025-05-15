@@ -139,10 +139,6 @@ def stop_tensorboard():
         tb_process = None
     return redirect(url_for('tensorboard'))
 
-@app.route('/monitor')
-def monitor():
-    return render_template('monitor.html', active_page='monitor')
-
 @app.route('/api/system-metrics')
 def system_metrics():
     return jsonify(get_system_metrics())
