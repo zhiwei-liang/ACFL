@@ -366,14 +366,20 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link {% if active_page == 'train' %}active{% endif %}" href="{{ url_for('index') }}">
-                                <i class="fas fa-cogs"></i>
-                                Training Configuration
+                                <i class="fas fa-play"></i>
+                                训练配置
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if active_page == 'tensorboard' %}active{% endif %}" href="{{ url_for('tensorboard') }}">
                                 <i class="fas fa-chart-line"></i>
-                                Tensorboard Visualization
+                                TensorBoard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_page == 'monitor' %}active{% endif %}" href="{{ url_for('monitor') }}">
+                                <i class="fas fa-desktop"></i>
+                                系统监控
                             </a>
                         </li>
                     </ul>

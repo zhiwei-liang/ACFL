@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">系统资源监控</h2>
+    
+    <!-- CPU监控 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">CPU使用情况</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <p>CPU核心数: <span id="cpuCount">-</span></p>
+                    <p>CPU使用率: <span id="cpuPercent">-</span>%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内存监控 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">内存使用情况</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="memoryChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <p>总内存: <span id="memoryTotal">-</span> GB</p>
+                    <p>已使用: <span id="memoryUsed">-</span> GB</p>
+                    <p>使用率: <span id="memoryPercent">-</span>%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 磁盘监控 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">磁盘使用情况</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="diskChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <p>总容量: <span id="diskTotal">-</span> GB</p>
+                    <p>已使用: <span id="diskUsed">-</span> GB</p>
+                    <p>使用率: <span id="diskPercent">-</span>%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GPU监控 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">GPU使用情况</h5>
+        </div>
+        <div class="card-body" id="gpuContainer">
+            <!-- GPU卡信息将通过JavaScript动态添加 -->
+        </div>
+    </div>
+</div>
+
+<!-- 引入Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// 初始化图表
+let cpuChart, memoryChart, diskChart;
+const maxDataPoints = 60; // 保存60个数据点（1分钟）
+const chartData = {
+    cpu: [],
+    memory: [],
+    disk: []
+};
+
+// 初始化CPU图表
+function initCPUChart() {
+    const ctx = document.getElementById('cpuChart').getContext('2d');
+    cpuChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'CPU使用率 (%)',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+}
+
+// 初始化内存图表
+function initMemoryChart() {
+    const ctx = document.getElementById('memoryChart').getContext('2d');
+    memoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['已使用', '可用'],
+            datasets: [{
+                data: [0, 100],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+// 初始化磁盘图表
+function initDiskChart() {
+    const ctx = document.getElementById('diskChart').getContext('2d');
+    diskChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['已使用', '可用'],
+            datasets: [{
+                data: [0, 100],
+                backgroundColor: [
+                    'rgb(255, 206, 86)',
+                    'rgb(75, 192, 192)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+// 更新GPU信息
+function updateGPUInfo(gpuData) {
+    const container = document.getElementById('gpuContainer');
+    container.innerHTML = '';
+    
+    if (gpuData.length === 0) {
+        container.innerHTML = '<p class="text-center">未检测到GPU设备</p>';
+        return;
+    }
+
+    gpuData.forEach((gpu, index) => {
+        const gpuHtml = `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">GPU ${gpu.id}: ${gpu.name}</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p>使用率: ${gpu.load.toFixed(2)}%</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p>显存: ${gpu.memory_used}/${gpu.memory_total} MB</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p>温度: ${gpu.temperature}°C</p>
+                        </div>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: ${gpu.load}%" 
+                             aria-valuenow="${gpu.load}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            ${gpu.load.toFixed(2)}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += gpuHtml;
+    });
+}
+
+// 更新图表和信息
+function updateCharts(data) {
+    // 更新CPU信息
+    document.getElementById('cpuCount').textContent = data.cpu.count;
+    document.getElementById('cpuPercent').textContent = data.cpu.percent.toFixed(2);
+    
+    // 更新内存信息
+    document.getElementById('memoryTotal').textContent = data.memory.total;
+    document.getElementById('memoryUsed').textContent = data.memory.used;
+    document.getElementById('memoryPercent').textContent = data.memory.percent.toFixed(2);
+    
+    // 更新磁盘信息
+    document.getElementById('diskTotal').textContent = data.disk.total;
+    document.getElementById('diskUsed').textContent = data.disk.used;
+    document.getElementById('diskPercent').textContent = data.disk.percent.toFixed(2);
+
+    // 更新图表数据
+    const timestamp = new Date(data.timestamp * 1000).toLocaleTimeString();
+    
+    // 更新CPU图表
+    cpuChart.data.labels.push(timestamp);
+    cpuChart.data.datasets[0].data.push(data.cpu.percent);
+    if (cpuChart.data.labels.length > maxDataPoints) {
+        cpuChart.data.labels.shift();
+        cpuChart.data.datasets[0].data.shift();
+    }
+    cpuChart.update();
+
+    // 更新内存图表
+    memoryChart.data.datasets[0].data = [
+        data.memory.used,
+        data.memory.total - data.memory.used
+    ];
+    memoryChart.update();
+
+    // 更新磁盘图表
+    diskChart.data.datasets[0].data = [
+        data.disk.used,
+        data.disk.total - data.disk.used
+    ];
+    diskChart.update();
+
+    // 更新GPU信息
+    updateGPUInfo(data.gpu);
+}
+
+// 初始化所有图表
+function initCharts() {
+    initCPUChart();
+    initMemoryChart();
+    initDiskChart();
+}
+
+// 定期获取系统指标
+function fetchMetrics() {
+    fetch('/api/system-metrics')
+        .then(response => response.json())
+        .then(data => {
+            updateCharts(data);
+        })
+        .catch(error => console.error('Error fetching metrics:', error));
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    fetchMetrics(); // 立即获取一次数据
+    setInterval(fetchMetrics, 2000); // 每2秒更新一次
+});
+</script>
+{% endblock %} 
