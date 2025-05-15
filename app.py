@@ -1,15 +1,71 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import subprocess
 import os
 from tensorboard import program
 import threading
 import webbrowser
 import glob
+import psutil
+import GPUtil
+import time
 
 app = Flask(__name__)
 
 # Global variable to store tensorboard process
 tb_process = None
+
+def get_system_metrics():
+    """Get system resource usage metrics"""
+    # CPU信息
+    cpu_percent = psutil.cpu_percent(interval=1)
+    cpu_count = psutil.cpu_count()
+    
+    # 内存信息
+    memory = psutil.virtual_memory()
+    memory_total = memory.total / (1024.0 ** 3)  # GB
+    memory_used = memory.used / (1024.0 ** 3)    # GB
+    memory_percent = memory.percent
+    
+    # 磁盘信息
+    disk = psutil.disk_usage('/')
+    disk_total = disk.total / (1024.0 ** 3)      # GB
+    disk_used = disk.used / (1024.0 ** 3)        # GB
+    disk_percent = disk.percent
+    
+    # GPU信息
+    gpu_info = []
+    try:
+        gpus = GPUtil.getGPUs()
+        for gpu in gpus:
+            gpu_info.append({
+                'id': gpu.id,
+                'name': gpu.name,
+                'load': gpu.load * 100,
+                'memory_total': gpu.memoryTotal,
+                'memory_used': gpu.memoryUsed,
+                'temperature': gpu.temperature
+            })
+    except:
+        gpu_info = []
+    
+    return {
+        'cpu': {
+            'percent': cpu_percent,
+            'count': cpu_count
+        },
+        'memory': {
+            'total': round(memory_total, 2),
+            'used': round(memory_used, 2),
+            'percent': memory_percent
+        },
+        'disk': {
+            'total': round(disk_total, 2),
+            'used': round(disk_used, 2),
+            'percent': disk_percent
+        },
+        'gpu': gpu_info,
+        'timestamp': time.time()
+    }
 
 def get_log_dirs():
     """Get all tensorboard log directories"""
@@ -82,6 +138,14 @@ def stop_tensorboard():
         tb_process.kill()
         tb_process = None
     return redirect(url_for('tensorboard'))
+
+@app.route('/monitor')
+def monitor():
+    return render_template('monitor.html', active_page='monitor')
+
+@app.route('/api/system-metrics')
+def system_metrics():
+    return jsonify(get_system_metrics())
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000) 
