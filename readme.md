@@ -32,6 +32,7 @@ The codes for the work "**ACFL: Communication-Efficient adversarial contrastive 
 
 - 🌈 **Web Interface**: Easy-to-use GUI for:
   - Model training configuration
+  - real time gpu/cpu/memory monitor
   - Real-time training visualization
   - TensorBoard log management
 
@@ -97,6 +98,7 @@ Then open your browser and visit: `http://localhost:5000`
   - Dataset selection
   - Model parameter adjustment
   - Training progress monitoring
+  -  real time gpu/cpu/memory monitor
 - 📊 **TensorBoard Integration**
   - Real-time metrics visualization
   - Log management
